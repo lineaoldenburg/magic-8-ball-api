@@ -113,14 +113,15 @@ app.get("/questions/:id", async (req, res) => {
   }
 });
 
-// 🚀 PATCH: Uppdatera specifik fråga/svar
 app.patch("/questions/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { question } = req.body;
+
+    // Hämta den nuvarande frågan baserat på ID
+    const question = await Question.findById(id);
 
     if (!question) {
-      return res.status(400).json({ error: "Question field is required" });
+      return res.status(404).json({ error: "Question not found" });
     }
 
     // Hämta ett nytt svar från responses
@@ -138,18 +139,13 @@ app.patch("/questions/:id", async (req, res) => {
     const randomResponse =
       responses[Math.floor(Math.random() * responses.length)].response;
 
-    // Uppdatera frågan och svaret
+    // Uppdatera endast svaret (response) utan att ändra frågan (question)
     const updatedQuestion = await Question.findByIdAndUpdate(
       id,
-      { question, response: randomResponse, date: new Date() },
+      { response: randomResponse, date: new Date() },
       { new: true } // Ensures that the updated document is returned
     );
 
-    if (!updatedQuestion) {
-      return res.status(404).json({ error: "Question not found" });
-    }
-
-    // Return the updated question with the new response
     res.status(200).json({
       message: "Question updated successfully",
       question: updatedQuestion,
@@ -159,6 +155,7 @@ app.patch("/questions/:id", async (req, res) => {
     res.status(500).json({ error: "Server failed you..." });
   }
 });
+
 
 // 🚀 DELETE: Radera specifik fråga/svar
 app.delete("/questions/:id", async (req, res) => {
