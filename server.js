@@ -96,6 +96,23 @@ app.get("/questions", async (req, res) => {
   }
 });
 
+// 🚀 GET: Hämta specifik fråga baserat på ID
+app.get("/questions/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const question = await Question.findById(id);
+
+    if (!question) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+
+    res.json(question);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Serverfel" });
+  }
+});
+
 // 🚀 PATCH: Uppdatera specifik fråga/svar
 app.patch("/questions/:id", async (req, res) => {
   try {
