@@ -8,7 +8,6 @@ app.use(express.json());
 
 require("dotenv").config();
 
-// Anslut till MongoDB
 mongoose
   .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
@@ -17,7 +16,6 @@ mongoose
   .then(() => console.log("✅ MongoDB Ansluten"))
   .catch((err) => console.log("❌ DB Fel:", err));
 
-//LISTA MED RANDOM SVAR
 const responseSchema = new mongoose.Schema({ response: String });
 const Response = mongoose.model(
   "Response",
@@ -25,7 +23,6 @@ const Response = mongoose.model(
   "magig-8-ball.responses"
 );
 
-// 🚀 GET: Hämta alla svar
 app.get("/responses", async (req, res) => {
   try {
     const responses = await Response.find();
@@ -35,7 +32,6 @@ app.get("/responses", async (req, res) => {
   }
 });
 
-//FRÅGOR & SVAR SCHEMA
 const questionResponseSchema = new mongoose.Schema({
   question: String,
   response: String,
@@ -48,7 +44,6 @@ const Question = mongoose.model(
   "magic-8-ball.questions"
 );
 
-// 🚀 POST: Skicka en fråga (och fetcha ett svar)
 app.post("/questions", async (req, res) => {
   try {
     const { question } = req.body;
@@ -57,7 +52,6 @@ app.post("/questions", async (req, res) => {
       return res.status(404).json({ error: "You need to write a question" });
     }
 
-    // Hämta ett svar från responses
     const response = await fetch(
       "https://magic-8-ball-api-zlrr.onrender.com/responses"
     );
@@ -86,7 +80,6 @@ app.post("/questions", async (req, res) => {
   }
 });
 
-// 🚀 GET: Hämta alla frågor och svar
 app.get("/questions", async (req, res) => {
   try {
     const questions = await Question.find();
@@ -96,7 +89,6 @@ app.get("/questions", async (req, res) => {
   }
 });
 
-// 🚀 GET: Hämta specifik fråga baserat på ID
 app.get("/questions/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -117,14 +109,12 @@ app.patch("/questions/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Hämta den nuvarande frågan baserat på ID
     const question = await Question.findById(id);
 
     if (!question) {
       return res.status(404).json({ error: "Question not found" });
     }
 
-    // Hämta ett nytt svar från responses
     const response = await fetch(
       "https://magic-8-ball-api-zlrr.onrender.com/responses"
     );
@@ -139,11 +129,10 @@ app.patch("/questions/:id", async (req, res) => {
     const randomResponse =
       responses[Math.floor(Math.random() * responses.length)].response;
 
-    // Uppdatera endast svaret (response) utan att ändra frågan (question)
     const updatedQuestion = await Question.findByIdAndUpdate(
       id,
       { response: randomResponse, date: new Date() },
-      { new: true } // Ensures that the updated document is returned
+      { new: true }
     );
 
     res.status(200).json({
@@ -156,8 +145,6 @@ app.patch("/questions/:id", async (req, res) => {
   }
 });
 
-
-// 🚀 DELETE: Radera specifik fråga/svar
 app.delete("/questions/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -169,11 +156,10 @@ app.delete("/questions/:id", async (req, res) => {
 
     res.status(202).json({ message: "Question has been deleted" });
   } catch (error) {
-    console.error(error); // Log the error for debugging purposes
+    console.error(error);
     res.status(500).json({ error: "Server failed you..." });
   }
 });
 
-// Starta servern
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`✅ Server kör på port ${port}`));
